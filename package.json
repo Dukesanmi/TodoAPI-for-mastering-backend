@@ -9,14 +9,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Dukesanmi/Inventory-Management-API-for-Fashion-Stores.git"
+    "url": "git+https://github.com/Dukesanmi/TodoAPI-for-mastering-backend.git"
   },
   "author": "Sanmi Akande",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/Dukesanmi/Fashion-house-Inventory-management-API/issues"
+    "url": "https://github.com/Dukesanmi/TodoAPI-for-mastering-backend/issues"
   },
-  "homepage": "https://github.com/Dukesanmi/Fashion-house-Inventory-management-API#readme",
+  "homepage": "https://github.com/Dukesanmi/TodoAPI-for-mastering-backend#readme",
   "dependencies": {
     "api": "^6.1.1",
     "bcryptjs": "^2.4.3",
