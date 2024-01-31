@@ -3,22 +3,22 @@ const controller = require('../controllers/controllers');
 const authController = require('../controllers/authcontrollers');
 const {	authenticate } = require('../middlewares/authentication');
 const router = Router();
-const User = ('../models/User');
+const User = ('../models/user');
 
 
-//Add new product
-router.post('/', authenticate, controller.newproduct);
+//Add new task
+router.post('/', authenticate, controller.createTask);
 
-//Get products
-router.get('/',authenticate, controller.products);
+//Get tasks
+router.get('/',authenticate, controller.getTasks);
 
-//Get product
-router.get('/:productId', authenticate, controller.product);
+//Get task
+router.get('/:taskId', authenticate, controller.getTask);
 
-//Update product information
-router.patch('/:productId', authenticate, controller.updateProduct);
+//Update task information
+router.patch('/:taskId', authenticate, controller.updateTask);
 
-//Delete product
-router.delete('/:productId', authenticate, controller.deleteProduct);
+//Delete task
+router.delete('/:taskId', authenticate, controller.deleteTask);
 
 module.exports = router;

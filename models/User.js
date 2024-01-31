@@ -1,49 +1,23 @@
-const log = console.log;
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
-const {	isEmail	} = require('validator');
+const log  = console.log;
+const db  = require("../config/db.js");
+require("dotenv").config();
 
 
-const UserSchema = new mongoose.Schema({
-	name: {
-		type: String,
-		unique:true,
-		required: true
-	},
-	email: {
-		type: String,
-		unique:true,
-		required: true,
-		validate: [isEmail, 'Please enter a valid email address']
-	},
-	password: {
-		type: String,
-		required: [true, 'Please enter a password'],
-		minlength: [6, 'Password length should be minimum of 6 characters']
-	}
+const userTable = `
+	CREATE TABLE IF NOT EXISTS freedb_freetestdb.user (
+	  ID INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	  name VARCHAR(255) NULL,
+	  email VARCHAR(45) NULL,
+	  password VARCHAR(255) NULL
+	)
+  `;
+
+db.query(userTable, (err, result) => {
+  	if (err) {
+  		log(err);
+  	} else {
+  		//log(result);
+  		log("users table created or already exits");
+  	}
+
 });
-
-UserSchema.pre('save', async function(next) {
-	const salt = await bcrypt.genSalt();
-	this.password = await bcrypt.hash(this.password, salt);
-	// console.log('user about to be created', this);
-	next();
-});
-
-// Static method to login user
-UserSchema.statics.login = async function(email, password) {
-	const user = await this.findOne({ email });
-	if (user) {
-		const auth = await bcrypt.compare(password, user.password);
-		if (auth) {
-			log(`user logged in: ${user}`)
-			return user;
-		}
-		throw Error('incorrect password');
-	}
-	throw Error('incorrect username');
-}
-
-const User = mongoose.model('User', UserSchema);
-
-module.exports = User;

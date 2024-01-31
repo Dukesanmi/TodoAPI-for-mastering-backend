@@ -3,9 +3,9 @@ const jwt = require('jsonwebtoken');
 const maxAge = 3*24*60*60;
 
 // Create Token
-module.exports.createToken = (id) => {
+module.exports.createToken = (email) => {
 	try {
-		let token = jwt.sign({ id }, process.env['MYTOKEN'], {
+		let token = jwt.sign({ email }, process.env['MYTOKEN'], {
 			expiresIn: maxAge
 		});
 		return token;

@@ -1,107 +1,125 @@
 const log = console.log;
-const Product = require('../models/Product');
-const User = require('../models/User');
+const db = require('../config/db');
 const {decodeToken} = require('../services/jwtservice');
+const Task = require('../models/task');
+const User = require('../models/user');
 
-// New product
-exports.newproduct = async (req, res) => {
- const { name, category, quantity, currency, price } = req.body;
+// New task
+exports.createTask = async (req, res) => {
+ const { task, description, due_date, priority, done } = req.body;
  const token = req.headers.authorization.split(' ')[1];
  const decode = decodeToken(token);
+ log(decode)
 
-  // Create new product
+  // Create new task
   try {
-    const product = await new Product({
-    	name: name,
-      category: category,
-      quantity: quantity,
-      currency: currency,
-      price: price,
-      store: decode.id  
+    //Find user ID
+    const findUser = await new Promise((resolve) => {
+      db.query(`SELECT ID FROM user WHERE email = '${decode.email}'`, (err, result) => {
+        resolve(result);
+      });
     });
+    log(findUser);
 
-    const savedProduct = await product.save();
-    res.status(200).json({ savedProduct });
+    // Add new task
+    const newTask = await new Promise((resolve) => {
+        db.query(`INSERT INTO task SET?`, {task: task, description: description, due_date: due_date, priority: priority, done: done, userId: findUser[0].ID}, (err, result) => {
+            if (err) {
+              log(err);
+              //res.status(500).json({status: 500, message: "Something went wrong"});
+            }
+            resolve(result);
+            res.status(200).json({status: 200, message: "New task added successfuly"})
+          });
+      });
   } catch (err) {
     	log(err);
       throw err;
-    	res.status(400).json({ err });
+    	res.status(400).json({ status: 500, message: "Server error" });
   }
 
 }
 
-//View products
-module.exports.products = async (req, res) => {
-  
-  //Basic Search
-  let conditions = {};
-  //check req.query for filters
-  if (req.query.name) {
-    conditions.name = req.query.name
+//View tasks
+module.exports.getTasks = async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+
+  if (page < 1 || limit < 1 || limit > 100) {
+    return res.status(400).json({ message: 'Invalid pagination parameters' });
   }
-  if (req.query.category) {
-    conditions.category = req.query.category;
-  }
-  if (req.query.quantity) {
-    conditions.quantity = req.query.quantity;
-  }
-  if (req.query.currency) {
-    conditions.currency = req.query.currency;
-  }
-  if (req.query.price) {
-    conditions.price = req.query.price;
-  }
+  const offset = (page - 1) * limit;
 
   try {
-    const products = await Product.find(conditions);
-    res.status(200).json({ products });
+    const tasks = await new Promise((resolve) => {
+      db.query(`SELECT * FROM task LIMIT ${limit} OFFSET ${offset}`, (err, result) => {
+        resolve(result);
+      });
+    });
+
+    const totalPages = Math.ceil(tasks.length / limit);
+
+    res.setHeader('X-Total-Count', tasks.length);
+    res.setHeader('X-Current-Page', page);
+    res.setHeader('X-Total-Pages', totalPages);
+
+    res.status(200).json({ status: 200, tasks: tasks });
   } 
   catch(err) {
-    res.status(400).json({ err });
+    res.status(500).json({ status:500, message: "Something went wrong" });
   }
 }
 
-// Get product by productId
-module.exports.product = async (req, res) => {
-  const id = req.params.productId;
+
+// Get task by taskId
+module.exports.getTask = async (req, res) => {
+  const id = req.params.taskId;
+    try {
+      const task = await new Promise((resolve) => {
+        db.query(`SELECT * FROM task WHERE ID =${id}`, (err, result) => {
+          resolve(result);
+        });
+      });
+      res.status(200).json({ status: 200, tasks: tasks });
+  }  
+  catch(err) {
+    res.status(500).json({ status:500, message: "Something went wrong" });
+  }
+}
+
+
+//Update task
+module.exports.updateTask = async (req, res) => { 
+  const { task, description, due_date, priority, status } = req.body;
+  const id = req.params.taskId;
+
   try {
-    const product = await Product.findById(id);
-    res.status(200).json({ product });
-  } 
+    const updateUser = await new Promise((resolve) => {
+      db.query(`UPDATE user SET task ='${task}', description='${description}', due_date = ${due_date}, priority = ${priority}, status = ${status} WHERE ID = '${id}'`, (err, result) => {
+        resolve(result);
+      });
+    }); 
+    res.status(200).json({status: 200, message: "Task update successful"});
+  }
   catch(err) {
     res.status(400).json({ err });
   }
 }
 
-
-//Update product
-module.exports.updateProduct = async (req, res) => { 
-  const { name, category, quantity, currency, price } = req.body;
-  const id = req.params.productId;
-
-  try {
-    const product = await Product.findByIdAndUpdate(id, {name, category, quantity, currency, price});
-    productSaved = product.save();
-    res.status(200).json({ productSaved }); 
-  }
-  catch(err) {
-    res.status(400).json({ err });
-  }
-}
-
-//Delete product
-module.exports.deleteProduct = async (req, res)=> {
+//Delete task
+module.exports.deleteTask = async (req, res)=> {
   const id = req.params.id;
   try {
-    const productDelete = await Product.findByIdAndDelete(id);
-    res.status(200).json({success: "Product deleted successfully"});
+    deleteUser = await new Promise((resolve) => {
+      db.query(`DELETE FROM task WHERE ID = ${id}`, (err, result) => {
+        resolve(result);
+      });
+    });
+    res.status(200).json({message: "Task has been successfully deleted"});
   } catch(err) {
     log(err);
     res.status(400).json({ err });
   }
 }
 
-
-//Post sale product update
-
-//Product restock update
+//2018-03-22 08:30:58.000000000005'

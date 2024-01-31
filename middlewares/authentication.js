@@ -2,7 +2,7 @@ const log = console.log;
 const { decodeToken } = require('../services/jwtservice');
 const adminToken = process.env["ADMINTOKEN"];
 
-
+//log(adminToken);
 
 exports.authenticateAdmin = function(req, res, next) {
   //log(req.headers);

@@ -2,7 +2,7 @@ const {Router} = require('express');
 const authController = require('../controllers/authcontrollers');
 const {	authenticateAdmin, authenticate } = require('../middlewares/authentication');
 const router = Router();
-const User = ('../models/User');
+const User = ('../models/user');
 
 //user signup
 router.post('/', authController.signup);
@@ -11,7 +11,9 @@ router.post('/', authController.signup);
 router.post('/login', authController.login);
 
 //edit user information
-router.patch('/:userId', authenticate, authController.updateUser);
+router.patch('/:userId', authenticate, authController.updateUserName);
+
+router.patch('/password/:userId', authenticate, authController.updateUserPassword);
 
 //admin user functions
 router.get('/', authenticateAdmin, authController.findUsers);
