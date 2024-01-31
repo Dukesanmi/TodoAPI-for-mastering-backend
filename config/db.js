@@ -26,6 +26,7 @@ if (process.env.NODE_ENV === 'development') {
     });
 }
 
+log(connectDeets.config.host);
 log(setDatabase);
 // Connect to DB
 connectDeets.connect(function(err) {

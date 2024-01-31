@@ -1,5 +1,6 @@
 const log = console.log;
 const db = require('../config/db');
+const { setToRedis } = require('../config/redis');
 const {decodeToken} = require('../services/jwtservice');
 const Task = require('../models/task');
 const User = require('../models/user');
@@ -9,21 +10,13 @@ exports.createTask = async (req, res) => {
  const { task, description, due_date, priority, done } = req.body;
  const token = req.headers.authorization.split(' ')[1];
  const decode = decodeToken(token);
- log(decode)
+ log(decode);
 
   // Create new task
   try {
-    //Find user ID
-    const findUser = await new Promise((resolve) => {
-      db.query(`SELECT ID FROM user WHERE email = '${decode.email}'`, (err, result) => {
-        resolve(result);
-      });
-    });
-    log(findUser);
-
     // Add new task
     const newTask = await new Promise((resolve) => {
-        db.query(`INSERT INTO task SET?`, {task: task, description: description, due_date: due_date, priority: priority, done: done, userId: findUser[0].ID}, (err, result) => {
+        db.query(`INSERT INTO task SET?`, {task: task, description: description, due_date: due_date, priority: priority, done: done, userEmail: decode.email }, (err, result) => {
             if (err) {
               log(err);
               //res.status(500).json({status: 500, message: "Something went wrong"});
@@ -42,6 +35,11 @@ exports.createTask = async (req, res) => {
 
 //View tasks
 module.exports.getTasks = async (req, res) => {
+  const token = req.headers.authorization.split(' ')[1];
+  const decode = decodeToken(token);
+  log(decode.email);
+  
+
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
 
@@ -52,20 +50,29 @@ module.exports.getTasks = async (req, res) => {
 
   try {
     const tasks = await new Promise((resolve) => {
-      db.query(`SELECT * FROM task LIMIT ${limit} OFFSET ${offset}`, (err, result) => {
+      db.query(`SELECT * FROM task WHERE userEmail='${decode.email}' LIMIT ${limit} OFFSET ${offset}`, (err, result) => {
         resolve(result);
       });
     });
-
+    //log(tasks);
     const totalPages = Math.ceil(tasks.length / limit);
 
     res.setHeader('X-Total-Count', tasks.length);
     res.setHeader('X-Current-Page', page);
     res.setHeader('X-Total-Pages', totalPages);
+    
+    // Prepare key and value for cache
+    const key = `page ${page}`;
+    const stringifiedTasks = JSON.stringify(tasks);
+
+    // Set tasks data to redis for caching
+    await setToRedis(key, stringifiedTasks, 10000);
+    log("Done with redis");
 
     res.status(200).json({ status: 200, tasks: tasks });
   } 
   catch(err) {
+    log(err);
     res.status(500).json({ status:500, message: "Something went wrong" });
   }
 }
@@ -121,5 +128,3 @@ module.exports.deleteTask = async (req, res)=> {
     res.status(400).json({ err });
   }
 }
-
-//2018-03-22 08:30:58.000000000005'

@@ -11,7 +11,7 @@ const taskTable = `
 	  due_date DATETIME NULL,
 	  priority ENUM('High', 'Medium', 'Low') NULL,
 	  done BOOLEAN DEFAULT false,
-	  userID INT NULL
+	  userEmail VARCHAR(45) NULL
 	)
   `;
   	  //done ENUM('Completed', 'Not Completed') NULL,

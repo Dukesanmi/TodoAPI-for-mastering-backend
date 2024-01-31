@@ -2,6 +2,7 @@ const {Router} = require('express');
 const controller = require('../controllers/controllers');
 const authController = require('../controllers/authcontrollers');
 const {	authenticate } = require('../middlewares/authentication');
+const {	tasksCache } = require('../middlewares/cache');
 const router = Router();
 const User = ('../models/user');
 
@@ -10,7 +11,7 @@ const User = ('../models/user');
 router.post('/', authenticate, controller.createTask);
 
 //Get tasks
-router.get('/',authenticate, controller.getTasks);
+router.get('/', authenticate, tasksCache, controller.getTasks);
 
 //Get task
 router.get('/:taskId', authenticate, controller.getTask);

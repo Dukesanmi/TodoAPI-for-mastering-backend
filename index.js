@@ -1,7 +1,6 @@
 const log = console.log;
 const express = require('express');
 const connectDB = require('./config/db');
-//const inventoryRoutes = require('./routes/routes');
 const { checkUser } = require('./middlewares/authentication');
 const date = new Date();
 const PORT = process.env['PORT'] || 8000;
@@ -9,7 +8,6 @@ const PORT = process.env['PORT'] || 8000;
 require('dotenv').config();
 
 const app = express();
-
 
 
 // Middlewares
